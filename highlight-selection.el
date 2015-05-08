@@ -73,7 +73,7 @@
 (define-minor-mode highlight-selection-mode
   "Highlight selection mode."
   :lighter " light"
-  (interactive)
+  :global t
   (eval-after-load 'evil
     '(defadvice evil-mouse-drag-region (after advice-highlight-selection () activate)
        (highlight-selection-highlight-occurrence)))
