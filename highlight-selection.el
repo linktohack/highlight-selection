@@ -4,7 +4,7 @@
 
 ;; Author: Quang-Linh LE <linktohack@gmail.com>
 ;; URL: http://github.com/linktohack/highlight-selection
-;; Version: 0.0.3
+;; Version: 0.0.4
 ;; Keywords: highlight selection highlight-selection
 ;; Package-Requires: ()
 
@@ -50,31 +50,45 @@
 
 ;;; Code:
 
-(defun highlight-selection-on-mouse-drag-region ()
+(defun highlight-selection-light-off ()
+  "Turn off highlight region."
+  (interactive)
+  (hi-lock-mode -1)
+  (when (fboundp 'evil-ex-nohighlight)))
+
+(defun highlight-selection-light-on (regexp)
+  "Highlight region with regexp.
+
+Make use of evil search highlight (and search next/previous) if
+possible."
+  (interactive)
+  (if (and (featurep 'evil)
+           (eq evil-search-module 'evil-search))
+      (progn
+        (setq evil-ex-search-direction 'forward
+              evil-ex-search-pattern
+              (evil-ex-make-search-pattern regexp))
+        (evil-ex-search-activate-highlight evil-ex-search-pattern))
+    (highlight-regexp regexp)))
+
+(defun highlight-selection-highlight-selection ()
+  "Highlight all occurrences current active selection."
   (when (use-region-p)
-    (hi-lock-mode -1)
-    (when (fboundp 'evil-ex-nohighlight)
-      (evil-ex-nohighlight))
-    (let* ((beg (region-beginning))
-           (end (if (and (featurep 'evil)
-                         (evil-visual-state-p))
-                    (1+ (region-end))
-                  (region-end)))
-           (regexp (regexp-quote
-                    (buffer-substring-no-properties beg end)))
-           (count (count-matches regexp (point-min) (point-max))))
-      ;; We don't want to highlight blank spaces or only one occurrence
-      (unless (or (string-match "^[ \\t\\n]*$" regexp)
-                  (< count 2))
-        (message "%d occurents of `%s'" count regexp)
-        (if (and (featurep 'evil)
-                 (eq evil-search-module 'evil-search))
-            (progn
-              (setq evil-ex-search-direction 'forward
-                    evil-ex-search-pattern
-                    (evil-ex-make-search-pattern regexp))
-              (evil-ex-search-activate-highlight evil-ex-search-pattern))
-          (highlight-regexp regexp))))))
+    (highlight-selection-light-off)
+    (evil-ex-nohighlight))
+  (let* ((beg (region-beginning))
+         (end (if (and (featurep 'evil)
+                       (evil-visual-state-p))
+                  (1+ (region-end))
+                (region-end)))
+         (regexp (regexp-quote
+                  (buffer-substring-no-properties beg end)))
+         (count (count-matches regexp (point-min) (point-max))))
+    ;; We don't want to highlight blank spaces or only one occurrence
+    (unless (or (string-match "^[ \\t\\n]*$" regexp)
+                (< count 2))
+      (message "%d occurrences of `%s'" count regexp)
+      (highlight-selection-light-on regexp))))
 
 ;;;###autoload
 (define-minor-mode highlight-selection-mode
@@ -85,9 +99,9 @@
       (progn
         (eval-after-load 'evil
           '(defadvice evil-mouse-drag-region (after highlight-selection () activate)
-             (highlight-selection-on-mouse-drag-region)))
+             (highlight-selection-highlight-selection)))
         (defadvice mouse-drag-region (after highlight-selection () activate)
-          (highlight-selection-on-mouse-drag-region)))
+          (highlight-selection-highlight-selection)))
     (eval-after-load 'evil
       '(progn
          (ad-remove-advice 'evil-mouse-drag-region 'after 'highlight-selection)
