@@ -54,6 +54,8 @@
   (when (and highlight-selection-mode
              (use-region-p))
     (hi-lock-mode -1)
+    (when (fboundp 'evil-ex-nohighlight)
+      (evil-ex-nohighlight))
     (let* ((beg (region-beginning))
            (end (region-end))
            (target (regexp-quote
@@ -66,7 +68,14 @@
       (unless (or (string-match "^[ \\t\\n]+$" target)
                   (< count 2))
         (message "%d occurents of `%s'" count target)
-        (highlight-regexp target)))))
+        (if (and (featurep 'evil)
+                 (eq evil-search-module 'evil-search))
+            (progn
+              (setq evil-ex-search-direction 'forward
+                    evil-ex-search-pattern
+                    (evil-ex-make-search-pattern target))
+              (evil-ex-search-activate-highlight evil-ex-search-pattern))
+          (highlight-regexp target))))))
 
 ;;;###autoload
 (define-minor-mode highlight-selection-mode
