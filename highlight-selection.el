@@ -50,7 +50,7 @@
 
 ;;; Code:
 
-(defun highlight-selection-highlight-occurrence ()
+(defun highlight-selection-on-mouse-drag-region ()
   (when (use-region-p)
     (hi-lock-mode -1)
     (when (fboundp 'evil-ex-nohighlight)
@@ -60,21 +60,21 @@
                          (evil-visual-state-p))
                     (1+ (region-end))
                   (region-end)))
-           (target (regexp-quote
+           (regexp (regexp-quote
                     (buffer-substring-no-properties beg end)))
-           (count (count-matches target (point-min) (point-max))))
+           (count (count-matches regexp (point-min) (point-max))))
       ;; We don't want to highlight blank spaces or only one occurrence
-      (unless (or (string-match "^[ \\t\\n]*$" target)
+      (unless (or (string-match "^[ \\t\\n]*$" regexp)
                   (< count 2))
-        (message "%d occurents of `%s'" count target)
+        (message "%d occurents of `%s'" count regexp)
         (if (and (featurep 'evil)
                  (eq evil-search-module 'evil-search))
             (progn
               (setq evil-ex-search-direction 'forward
                     evil-ex-search-pattern
-                    (evil-ex-make-search-pattern target))
+                    (evil-ex-make-search-pattern regexp))
               (evil-ex-search-activate-highlight evil-ex-search-pattern))
-          (highlight-regexp target))))))
+          (highlight-regexp regexp))))))
 
 ;;;###autoload
 (define-minor-mode highlight-selection-mode
@@ -85,9 +85,9 @@
       (progn
         (eval-after-load 'evil
           '(defadvice evil-mouse-drag-region (after highlight-selection () activate)
-             (highlight-selection-highlight-occurrence)))
+             (highlight-selection-on-mouse-drag-region)))
         (defadvice mouse-drag-region (after highlight-selection () activate)
-          (highlight-selection-highlight-occurrence)))
+          (highlight-selection-on-mouse-drag-region)))
     (eval-after-load 'evil
       '(progn
          (ad-remove-advice 'evil-mouse-drag-region 'after 'highlight-selection)
