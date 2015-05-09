@@ -51,18 +51,17 @@
 ;;; Code:
 
 (defun highlight-selection-highlight-occurrence ()
-  (when (and highlight-selection-mode
-             (use-region-p))
+  (when (use-region-p)
     (hi-lock-mode -1)
     (when (fboundp 'evil-ex-nohighlight)
       (evil-ex-nohighlight))
     (let* ((beg (region-beginning))
-           (end (region-end))
+           (end (if (and (featurep 'evil)
+                         (evil-visual-state-p))
+                    (1+ (region-end))
+                  (region-end)))
            (target (regexp-quote
-                    (if (and (featurep 'evil)
-                             (evil-visual-state-p))
-                        (buffer-substring-no-properties beg (1+ end))
-                      (buffer-substring-no-properties beg end))))
+                    (buffer-substring-no-properties beg end)))
            (count (count-matches target (point-min) (point-max))))
       ;; We don't want to highlight blank spaces or only one occurrence
       (unless (or (string-match "^[ \\t\\n]*$" target)
@@ -82,11 +81,19 @@
   "Highlight selection mode."
   :lighter " light"
   :global t
-  (eval-after-load 'evil
-    '(defadvice evil-mouse-drag-region (after advice-highlight-selection () activate)
-       (highlight-selection-highlight-occurrence)))
-  (defadvice mouse-drag-region (after advice-highlight-selection () activate)
-    (highlight-selection-highlight-occurrence)))
+  (if highlight-selection-mode
+      (progn
+        (eval-after-load 'evil
+          '(defadvice evil-mouse-drag-region (after highlight-selection () activate)
+             (highlight-selection-highlight-occurrence)))
+        (defadvice mouse-drag-region (after highlight-selection () activate)
+          (highlight-selection-highlight-occurrence)))
+    (eval-after-load 'evil
+      '(progn
+         (ad-remove-advice 'evil-mouse-drag-region 'after 'highlight-selection)
+         (ad-update 'evil-mouse-drag-region)))
+    (ad-remove-advice 'mouse-drag-region 'after 'highlight-selection)
+    (ad-update 'mouse-drag-region)))
 
 
 (provide 'highlight-selection)
