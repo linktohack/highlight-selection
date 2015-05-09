@@ -51,13 +51,14 @@
 ;;; Code:
 
 (defun highlight-selection-light-off ()
-  "Turn off highlight region."
+  "Turn off highlight selection."
   (interactive)
   (hi-lock-mode -1)
-  (when (fboundp 'evil-ex-nohighlight)))
+  (when (fboundp 'evil-ex-nohighlight)
+    (evil-ex-nohighlight)))
 
 (defun highlight-selection-light-on (regexp)
-  "Highlight region with regexp.
+  "Highlight selection with regexp.
 
 Make use of evil search highlight (and search next/previous) if
 possible."
@@ -71,18 +72,17 @@ possible."
         (evil-ex-search-activate-highlight evil-ex-search-pattern))
     (highlight-regexp regexp)))
 
-(defun highlight-selection-highlight-selection ()
+(defun highlight-selection-current-selection (beg end)
   "Highlight all occurrences current active selection."
+  (interactive "r")
   (when (use-region-p)
-    (highlight-selection-light-off)
-    (evil-ex-nohighlight))
-  (let* ((beg (region-beginning))
-         (end (if (and (featurep 'evil)
-                       (evil-visual-state-p))
-                  (1+ (region-end))
-                (region-end)))
+    (highlight-selection-light-off))
+  (let* ((true-end (if (and (featurep 'evil)
+                            (evil-visual-state-p))
+                       (1+ end)
+                     end))
          (regexp (regexp-quote
-                  (buffer-substring-no-properties beg end)))
+                  (buffer-substring-no-properties beg true-end)))
          (count (count-matches regexp (point-min) (point-max))))
     ;; We don't want to highlight blank spaces or only one occurrence
     (unless (or (string-match "^[ \\t\\n]*$" regexp)
@@ -92,16 +92,20 @@ possible."
 
 ;;;###autoload
 (define-minor-mode highlight-selection-mode
-  "Highlight selection mode."
+  "Highlight selection mode.
+
+Highlight all occurrences of current selected region in
+buffer. Select blank spaces to remove them. (Tip, double-click
+works great...)"
   :lighter " light"
   :global t
   (if highlight-selection-mode
       (progn
         (eval-after-load 'evil
           '(defadvice evil-mouse-drag-region (after highlight-selection () activate)
-             (highlight-selection-highlight-selection)))
+             (call-interactively 'highlight-selection-current-selection)))
         (defadvice mouse-drag-region (after highlight-selection () activate)
-          (highlight-selection-highlight-selection)))
+          (call-interactively 'highlight-selection-current-selection)))
     (eval-after-load 'evil
       '(progn
          (ad-remove-advice 'evil-mouse-drag-region 'after 'highlight-selection)
