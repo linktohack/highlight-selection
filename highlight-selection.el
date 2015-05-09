@@ -54,15 +54,14 @@
   (when (and highlight-selection-mode
              (use-region-p))
     (hi-lock-mode -1)
-    (let ((beg (region-beginning))
-          (end (region-end))
-          (target nil)
-          (count nil))
-      (if (and (featurep 'evil)
-               (evil-visual-state-p))
-          (setq target (buffer-substring-no-properties beg (1+ end)))
-        (setq target (buffer-substring-no-properties beg end)))
-      (setq count (count-matches target (point-min) (point-max)))
+    (let* ((beg (region-beginning))
+           (end (region-end))
+           (target (regexp-quote
+                    (if (and (featurep 'evil)
+                             (evil-visual-state-p))
+                        (buffer-substring-no-properties beg (1+ end))
+                      (buffer-substring-no-properties beg end))))
+           (count (count-matches target (point-min) (point-max))))
       ;; We don't want to highlight blank spaces or only one occurrence
       (unless (or (string-match "^[ \\t\\n]+$" target)
                   (< count 2))
