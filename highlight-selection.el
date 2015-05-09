@@ -65,7 +65,7 @@
                       (buffer-substring-no-properties beg end))))
            (count (count-matches target (point-min) (point-max))))
       ;; We don't want to highlight blank spaces or only one occurrence
-      (unless (or (string-match "^[ \\t\\n]+$" target)
+      (unless (or (string-match "^[ \\t\\n]*$" target)
                   (< count 2))
         (message "%d occurents of `%s'" count target)
         (if (and (featurep 'evil)
