@@ -38,7 +38,7 @@
 ;; occurrences of that word/symbol will be highlighted. The highlight
 ;; will be remove when user select a blank space or new line.
 ;;
-;; Works best with `evil-visualstar'.
+;; Works best with `evil-search'.
 
 
 ;;; Example:
