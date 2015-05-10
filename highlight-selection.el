@@ -50,6 +50,7 @@
 
 ;;; Code:
 
+;;;###autoload
 (defun highlight-selection-light-off ()
   "Turn off highlight selection."
   (interactive)
@@ -57,6 +58,7 @@
   (when (fboundp 'evil-ex-nohighlight)
     (evil-ex-nohighlight)))
 
+;;;###autoload
 (defun highlight-selection-light-on (regexp)
   "Highlight selection with regexp.
 
@@ -72,6 +74,7 @@ possible."
         (evil-ex-search-activate-highlight evil-ex-search-pattern))
     (highlight-regexp regexp)))
 
+;;;###autoload
 (defun highlight-selection-current-selection (beg end)
   "Highlight all occurrences current active selection."
   (interactive "r")
