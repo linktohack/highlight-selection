@@ -88,7 +88,7 @@ possible."
                   (buffer-substring-no-properties beg true-end)))
          (count (count-matches regexp (point-min) (point-max))))
     ;; We don't want to highlight blank spaces or only one occurrence
-    (unless (or (string-match "^[ \\t\\n]*$" regexp)
+    (unless (or (string-match "^[ \\t\\r\\n]*$" regexp)
                 (< count 2))
       (message "%d occurrences of `%s'" count regexp)
       (highlight-selection-light-on regexp))))
