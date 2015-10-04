@@ -4,7 +4,7 @@
 
 ;; Author: Quang-Linh LE <linktohack@gmail.com>
 ;; URL: http://github.com/linktohack/highlight-selection
-;; Version: 0.0.6
+;; Version: 0.0.7
 ;; Keywords: highlight selection highlight-selection
 ;; Package-Requires: ()
 
@@ -105,14 +105,21 @@ works great...)"
   (if highlight-selection-mode
       (progn
         (eval-after-load 'evil
-          '(defadvice evil-mouse-drag-region (after highlight-selection () activate)
-             (call-interactively 'highlight-selection-current-selection)))
+          '(progn
+             (defadvice evil-mouse-drag-region (after highlight-selection () activate)
+               (call-interactively 'highlight-selection-current-selection))
+             (defadvice evil-ex-hl-update-highlights (after lower-overlay-priority activate)
+               (dolist (hl (mapcar #'cdr evil-ex-active-highlights-alist))
+                 (dolist (ov (evil-ex-hl-overlays hl))
+                   (overlay-put ov 'priority 90))))))
         (defadvice mouse-drag-region (after highlight-selection () activate)
           (call-interactively 'highlight-selection-current-selection)))
     (eval-after-load 'evil
       '(progn
          (ad-remove-advice 'evil-mouse-drag-region 'after 'highlight-selection)
-         (ad-update 'evil-mouse-drag-region)))
+         (ad-update 'evil-mouse-drag-region)
+         (ad-remove-advice 'evil-ex-hl-update-highlights 'after 'lower-overlay-priority)
+         (ad-update 'evil-ex-hl-update-highlights)))
     (ad-remove-advice 'mouse-drag-region 'after 'highlight-selection)
     (ad-update 'mouse-drag-region)))
 
