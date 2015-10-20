@@ -1,0 +1,27 @@
+* highlight-selection
+#+BEGIN_QUOTE
+Yet another attempt to bring highlight selection to emacs.
+#+END_QUOTE
+Unlike other attempts, that highlight symbol-at-point using an idle
+timer, this program advises `mouse-drag-region' to highlight
+current selection, that means that user will be able to
+double-click a word, or manually section a symbol, then all
+occurrences of that word/symbol will be highlighted. The highlight
+will be remove when user select a blank space or new line.
+
+Works best with ~evil-search~.
+* Example:
+- Select a word to highlight
+- Double-click to highlight
+- Double-click beyond end of line to remove highlight
+* Installation
+Remove =:load-path= if the package is installed via =package.el=
+#+BEGIN_SRC emacs-lisp
+(require 'use-package)
+(use-package highlight-selection
+  :load-path "/path/to/highlight-selection/"
+  :diminish highlight-selection-mode
+  :demand
+  :config (highlight-selection-mode 1)
+  :bind (("s-e" . highlight-selection-current-selection)))
+#+END_SRC
