@@ -4,7 +4,7 @@
 
 ;; Author: Quang-Linh LE <linktohack@gmail.com>
 ;; URL: http://github.com/linktohack/highlight-selection
-;; Version: 0.0.7
+;; Version: 0.0.8
 ;; Keywords: highlight selection highlight-selection
 ;; Package-Requires: ()
 
@@ -78,14 +78,9 @@ possible."
 (defun highlight-selection-current-selection (beg end)
   "Highlight all occurrences current active selection."
   (interactive "r")
-  (when (use-region-p)
-    (highlight-selection-light-off))
-  (let* ((true-end (if (and (featurep 'evil)
-                            (evil-visual-state-p))
-                       (1+ end)
-                     end))
-         (regexp (regexp-quote
-                  (buffer-substring-no-properties beg true-end)))
+  (highlight-selection-light-off)
+  (let* ((regexp (regexp-quote
+                  (buffer-substring-no-properties beg end)))
          (count (count-matches regexp (point-min) (point-max))))
     ;; We don't want to highlight blank spaces or only one occurrence
     (unless (or (string-match "^[^a-zA-Z0-9]*$" regexp)
@@ -107,7 +102,8 @@ works great...)"
         (eval-after-load 'evil
           '(progn
              (defadvice evil-mouse-drag-region (after highlight-selection () activate)
-               (call-interactively 'highlight-selection-current-selection))
+               (when (evil-visual-state-p)
+                 (highlight-selection-current-selection evil-visual-beginning evil-visual-end)))
              (defadvice evil-ex-hl-update-highlights (after lower-overlay-priority activate)
                (dolist (hl (mapcar #'cdr evil-ex-active-highlights-alist))
                  (dolist (ov (evil-ex-hl-overlays hl))
