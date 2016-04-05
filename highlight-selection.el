@@ -4,7 +4,7 @@
 
 ;; Author: Quang-Linh LE <linktohack@gmail.com>
 ;; URL: http://github.com/linktohack/highlight-selection
-;; Version: 0.0.8
+;; Version: 0.0.9
 ;; Keywords: highlight selection highlight-selection
 ;; Package-Requires: ()
 
