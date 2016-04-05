@@ -50,6 +50,10 @@
 
 ;;; Code:
 
+(defcustom highlight-selection-max-occurrences 200
+  "We don't want to highlight ten thousands of selection."
+  :group 'highlight-selection)
+
 ;;;###autoload
 (defun highlight-selection-light-off ()
   "Turn off highlight selection."
@@ -86,7 +90,8 @@ possible."
     (unless (or (string-match "^[^a-zA-Z0-9]*$" regexp)
                 (< count 2))
       (message "%d occurrences of `%s'" count regexp)
-      (highlight-selection-light-on regexp))))
+      (when (< count highlight-selection-max-occurrences)
+        (highlight-selection-light-on regexp)))))
 
 ;;;###autoload
 (define-minor-mode highlight-selection-mode
